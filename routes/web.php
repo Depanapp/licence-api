@@ -19,7 +19,7 @@ Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/entreprises/create', [AdminEntrepriseController::class, 'create'])->name('entreprises.create');
     Route::post('/entreprises', [AdminEntrepriseController::class, 'store'])->name('entreprises.store');
