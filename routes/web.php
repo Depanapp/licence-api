@@ -10,7 +10,11 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminEntrepriseController;
 use App\Http\Controllers\Admin\AdminLicenceController;
 
-Route::get('/', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+Route::get('/', function () {
+    return redirect()->route('admin.login');
+});
+
+Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
