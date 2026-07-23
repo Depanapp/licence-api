@@ -8,8 +8,19 @@
 
 <div class="carte">
     <label style="margin-top:0;">Clé de licence</label>
-    <div class="cle-licence">{{ $licence->cle }}</div>
 
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div class="cle-licence" id="cle-{{ $licence->id }}">
+            {{ $licence->cle }}
+        </div>
+
+        <button 
+            type="button" 
+            onclick="copierCle('{{ $licence->id }}')"
+            class="bouton-copie">
+            📋 Copier
+        </button>
+    </div>
     <div class="grille-2" style="margin-top:20px;">
         <div>
             <label style="margin-top:0;">Statut</label>
@@ -104,3 +115,18 @@
 
 <a href="{{ route('admin.dashboard') }}" class="bouton bouton-secondaire" style="margin-top:8px;">← Retour à la liste</a>
 @endsection
+
+@push('scripts')
+<script>
+function copierCle(id) {
+    const cle = document.getElementById('cle-' + id).innerText;
+
+    navigator.clipboard.writeText(cle)
+        .then(() => {
+            alert('Clé copiée !');
+        })
+        .catch(() => {
+            alert('Impossible de copier la clé.');
+        });
+}
+</script>
