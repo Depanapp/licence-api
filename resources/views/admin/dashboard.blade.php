@@ -28,7 +28,15 @@
             @forelse ($licences as $licence)
                 <tr>
                     <td>{{ $licence->entreprise->nom }}</td>
-                    <td><code>{{ $licence->cle }}</code></td>
+                    <td>
+                        <code id="cle-{{ $licence->id }}">{{ $licence->cle }}</code>
+                        <button 
+                            type="button" 
+                            onclick="copierCle('{{ $licence->id }}')"
+                            class="bouton-copie">
+                            📋 Copier
+                        </button>
+                    </td>
                     <td>{{ ucfirst($licence->type) }}</td>
                     <td>{{ \Illuminate\Support\Carbon::parse($licence->date_expiration)->format('d/m/Y') }}</td>
                     <td>{{ $licence->appareils->count() }} / {{ $licence->nombre_utilisateurs }}</td>
@@ -45,4 +53,20 @@
         </tbody>
     </table>
 </div>
+@push('scripts')
+<script>
+function copierCle(id) {
+    const cle = document.getElementById('cle-' + id).innerText;
+
+    navigator.clipboard.writeText(cle)
+        .then(() => {
+            alert('Clé copiée !');
+        })
+        .catch(() => {
+            alert('Impossible de copier la clé.');
+        });
+}
+</script>
+@endpush
 @endsection
+
