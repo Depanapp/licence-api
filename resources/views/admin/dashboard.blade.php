@@ -53,6 +53,8 @@
         </tbody>
     </table>
 </div>
+@endsection
+
 @push('scripts')
 <script>
 function copierCle(id) {
@@ -68,5 +70,3 @@ function copierCle(id) {
 }
 </script>
 @endpush
-@endsection
-
