@@ -1,204 +1,181 @@
 @extends('admin.layout')
 
-@section('titre', 'Licence ' . $licence->cle)
+@section('titre', 'Détail licence')
 
 @section('contenu')
-<style>
-    .entete-page {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
+<div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
-    .grille-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
+    {{-- En-tête avec bouton retour --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-2 transition">
+                ← Retour à la liste
+            </a>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{{ $licence->entreprise->nom }}</h1>
+            <p class="text-sm text-gray-500">Licence créée le {{ $licence->created_at->format('d/m/Y') }}</p>
+        </div>
 
-    .champ-cle {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #F4F4F1;
-        border: 1px solid var(--bordure);
-        padding: 12px 16px;
-        border-radius: 10px;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .champ-cle code {
-        font-family: 'SF Mono', Consolas, monospace;
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        word-break: break-all;
-    }
-
-    .liste-info {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .liste-info li {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid var(--bordure);
-        font-size: 13.5px;
-    }
-
-    .liste-info li:last-child {
-        border-bottom: none;
-    }
-
-    .groupe-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    @media (max-width: 768px) {
-        .entete-page {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .groupe-actions {
-            width: 100%;
-        }
-
-        .groupe-actions .bouton, 
-        .groupe-actions form {
-            width: 100%;
-        }
-
-        .groupe-actions form button {
-            width: 100%;
-        }
-    }
-</style>
-
-<div class="entete-page">
-    <div>
-        <a href="{{ route('admin.dashboard') }}" style="color: var(--texte-secondaire); text-decoration: none; font-size: 13px;">← Retour aux licences</a>
-        <h1 style="margin-top: 6px;">Gestion de la licence</h1>
-        <p class="sous-titre" style="margin-bottom:0;">Attribuée à <strong>{{ $licence->entreprise->nom }}</strong></p>
+        <div>
+            @php
+                $statutClasses = [
+                    'active' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+                    'expiree' => 'bg-rose-50 text-rose-700 ring-rose-600/20',
+                    'bloquee' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
+                ];
+            @endphp
+            <span class="inline-flex items-center rounded-md px-3 py-1 text-sm font-semibold ring-1 ring-inset {{ $statutClasses[$licence->statut] ?? 'bg-gray-50 text-gray-600' }}">
+                {{ ucfirst($licence->statut) }}
+            </span>
+        </div>
     </div>
 
-    <div class="groupe-actions">
-        @if($licence->statut === 'active')
-            <form method="POST" action="{{ route('admin.licences.bloquer', $licence) }}">
+    {{-- Carte principale : Détails Licence --}}
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-5 sm:p-6 space-y-6">
+        
+        {{-- Section Clé de Licence --}}
+        <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Clé de licence</label>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div id="cle-{{ $licence->id }}" class="flex-1 bg-gray-50 border border-gray-200 font-mono text-sm sm:text-base text-gray-800 rounded-lg p-3 break-all tracking-wide text-center sm:text-left">
+                    {{ $licence->cle }}
+                </div>
+                <button 
+                    type="button" 
+                    onclick="copierCle('{{ $licence->id }}', this)"
+                    class="inline-flex justify-center items-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition active:scale-[0.98]">
+                    <span>📋</span> <span class="btn-text">Copier la clé</span>
+                </button>
+            </div>
+        </div>
+
+        <hr class="border-gray-100">
+
+        {{-- Grille des données --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
+                <span class="block text-xs font-medium text-gray-500">Type</span>
+                <span class="text-base font-semibold text-gray-900">{{ ucfirst($licence->type) }}</span>
+            </div>
+
+            <div class="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
+                <span class="block text-xs font-medium text-gray-500">Début</span>
+                <span class="text-base font-semibold text-gray-900">{{ \Illuminate\Support\Carbon::parse($licence->date_debut)->format('d/m/Y') }}</span>
+            </div>
+
+            <div class="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
+                <span class="block text-xs font-medium text-gray-500">Expiration</span>
+                <span class="text-base font-semibold text-gray-900">{{ \Illuminate\Support\Carbon::parse($licence->date_expiration)->format('d/m/Y') }}</span>
+            </div>
+
+            <div class="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
+                <span class="block text-xs font-medium text-gray-500">Postes utilisés</span>
+                <span class="text-base font-semibold text-gray-900">{{ $licence->appareils->count() }} <span class="text-gray-400 font-normal">/ {{ $licence->nombre_utilisateurs }}</span></span>
+            </div>
+        </div>
+
+        <div class="text-sm text-gray-600">
+            <strong class="font-medium text-gray-900">Véhicules max :</strong> {{ $licence->nombre_vehicules }}
+        </div>
+
+        <hr class="border-gray-100">
+
+        {{-- Actions Licence --}}
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+            <div>
+                @if ($licence->statut !== 'expiree')
+                    <form method="POST" action="{{ route('admin.licences.toggle', $licence) }}">
+                        @csrf
+                        <button type="submit" class="w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium transition border {{ $licence->statut === 'bloquee' ? 'bg-emerald-600 text-white hover:bg-emerald-700 border-transparent' : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' }}">
+                            {{ $licence->statut === 'bloquee' ? 'Débloquer la licence' : 'Bloquer la licence' }}
+                        </button>
+                    </form>
+                @endif
+            </div>
+
+            <form method="POST"
+                action="{{ route('admin.licences.destroy', $licence) }}"
+                onsubmit="return confirm('⚠️ Cette action est irréversible.\n\nVoulez-vous vraiment supprimer cette licence ?');">
                 @csrf
-                <button type="submit" class="bouton bouton-danger">Bloquer la licence</button>
+                @method('DELETE')
+                <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-medium rounded-lg transition">
+                    🗑 Supprimer la licence
+                </button>
             </form>
-        @else
-            <form method="POST" action="{{ route('admin.licences.activer', $licence) }}">
-                @csrf
-                <button type="submit" class="bouton">Activer la licence</button>
-            </form>
-        @endif
-    </div>
-</div>
+        </div>
 
-<div class="carte">
-    <label style="margin-top: 0;">Clé de licence</label>
-    <div class="champ-cle">
-        <code id="cle-licence">{{ $licence->cle }}</code>
-        <button type="button" onclick="copierCle('cle-licence', this)" class="bouton bouton-secondaire" style="padding: 6px 12px; font-size: 12.5px;">
-            📋 Copier la clé
-        </button>
-    </div>
-</div>
-
-<div class="grille-details">
-    <div class="carte">
-        <h3 style="margin-top: 0; font-size: 16px;">Informations générales</h3>
-        <ul class="liste-info">
-            <li>
-                <span style="color: var(--texte-secondaire);">Statut</span>
-                <span class="badge badge-{{ $licence->statut === 'active' ? 'active' : ($licence->statut === 'expiree' ? 'expiree' : 'bloquee') }}">
-                    {{ ucfirst($licence->statut) }}
-                </span>
-            </li>
-            <li>
-                <span style="color: var(--texte-secondaire);">Type d'abonnement</span>
-                <strong>{{ ucfirst($licence->type) }}</strong>
-            </li>
-            <li>
-                <span style="color: var(--texte-secondaire);">Date de début</span>
-                <span>{{ \Illuminate\Support\Carbon::parse($licence->date_debut)->format('d/m/Y') }}</span>
-            </li>
-            <li>
-                <span style="color: var(--texte-secondaire);">Date d'expiration</span>
-                <span>{{ \Illuminate\Support\Carbon::parse($licence->date_expiration)->format('d/m/Y') }}</span>
-            </li>
-        </ul>
     </div>
 
-    <div class="carte">
-        <h3 style="margin-top: 0; font-size: 16px;">Limites & Postes</h3>
-        <ul class="liste-info">
-            <li>
-                <span style="color: var(--texte-secondaire);">Postes actifs</span>
-                <strong>{{ $licence->appareils->count() }} / {{ $licence->nombre_utilisateurs }}</strong>
-            </li>
-            <li>
-                <span style="color: var(--texte-secondaire);">Véhicules autorisés</span>
-                <strong>{{ $licence->nombre_vehicules }}</strong>
-            </li>
-        </ul>
-    </div>
-</div>
+    {{-- Carte tableau : Appareils activés --}}
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="text-base font-semibold text-gray-900">Appareils activés</h2>
+        </div>
 
-<div class="carte" style="padding: 0;">
-    <div style="padding: 16px 20px; border-bottom: 1px solid var(--bordure);">
-        <h3 style="margin: 0; font-size: 16px;">Appareils / Postes enregistrés</h3>
-    </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Nom de l'appareil</th>
-                    <th>Identifiant unique</th>
-                    <th>Dernière connexion</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($licence->appareils as $appareil)
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
                     <tr>
-                        <td style="font-weight: 600;">{{ $appareil->nom ?? 'Appareil inconnu' }}</td>
-                        <td><code>{{ $appareil->identifiant_unique }}</code></td>
-                        <td>{{ $appareil->updated_at ? $appareil->updated_at->format('d/m/Y H:i') : 'N/A' }}</td>
+                        <th class="px-5 py-3 font-semibold">Machine</th>
+                        <th class="px-5 py-3 font-semibold">Identifiant</th>
+                        <th class="px-5 py-3 font-semibold">Dernière vérification</th>
+                        <th class="px-5 py-3 font-semibold text-right">Action</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="3" style="text-align: center; color: var(--texte-secondaire); padding: 24px;">
-                            Aucun poste n'a encore été enregistré avec cette licence.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse ($licence->appareils as $appareil)
+                        <tr class="hover:bg-gray-50/50 transition">
+                            <td class="px-5 py-4 font-medium text-gray-900 whitespace-nowrap">{{ $appareil->nom_machine ?? '—' }}</td>
+                            <td class="px-5 py-4 font-mono text-xs text-gray-500 whitespace-nowrap">
+                                <span class="bg-gray-100 px-2 py-1 rounded">{{ $appareil->identifiant_machine }}</span>
+                            </td>
+                            <td class="px-5 py-4 whitespace-nowrap text-gray-500">{{ $appareil->derniere_verification?->format('d/m/Y H:i') ?? '—' }}</td>
+                            <td class="px-5 py-4 text-right whitespace-nowrap">
+                                <form method="POST" action="{{ route('admin.appareils.revoquer', $appareil) }}" onsubmit="return confirm('Révoquer cet appareil ? Le poste sera libéré.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 text-xs font-semibold rounded-md transition">
+                                        Révoquer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-5 py-8 text-center text-gray-400">
+                                Aucun appareil activé pour le moment.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
-function copierCle(idElement, btn) {
-    const cle = document.getElementById(idElement).innerText;
-    navigator.clipboard.writeText(cle).then(() => {
-        const texteOriginal = btn.innerText;
-        btn.innerText = '✅ Copié !';
-        setTimeout(() => { btn.innerText = texteOriginal; }, 2000);
-    });
+function copierCle(id, btn) {
+    const cle = document.getElementById('cle-' + id).innerText.trim();
+    const btnText = btn.querySelector('.btn-text');
+
+    navigator.clipboard.writeText(cle)
+        .then(() => {
+            if (btnText) {
+                const textOriginal = btnText.innerText;
+                btnText.innerText = 'Copié !';
+                btn.classList.add('bg-emerald-700');
+                
+                setTimeout(() => {
+                    btnText.innerText = textOriginal;
+                    btn.classList.remove('bg-emerald-700');
+                }, 2000);
+            }
+        })
+        .catch(() => {
+            alert('Impossible de copier la clé.');
+        });
 }
 </script>
 @endpush
