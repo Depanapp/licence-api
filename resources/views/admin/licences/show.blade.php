@@ -1,132 +1,204 @@
 @extends('admin.layout')
 
-@section('titre', 'Détail licence')
+@section('titre', 'Licence ' . $licence->cle)
 
 @section('contenu')
-<h1>{{ $licence->entreprise->nom }}</h1>
-<p class="sous-titre">Licence créée le {{ $licence->created_at->format('d/m/Y') }}</p>
+<style>
+    .entete-page {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .grille-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .champ-cle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #F4F4F1;
+        border: 1px solid var(--bordure);
+        padding: 12px 16px;
+        border-radius: 10px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .champ-cle code {
+        font-family: 'SF Mono', Consolas, monospace;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        word-break: break-all;
+    }
+
+    .liste-info {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .liste-info li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--bordure);
+        font-size: 13.5px;
+    }
+
+    .liste-info li:last-child {
+        border-bottom: none;
+    }
+
+    .groupe-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        .entete-page {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .groupe-actions {
+            width: 100%;
+        }
+
+        .groupe-actions .bouton, 
+        .groupe-actions form {
+            width: 100%;
+        }
+
+        .groupe-actions form button {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="entete-page">
+    <div>
+        <a href="{{ route('admin.dashboard') }}" style="color: var(--texte-secondaire); text-decoration: none; font-size: 13px;">← Retour aux licences</a>
+        <h1 style="margin-top: 6px;">Gestion de la licence</h1>
+        <p class="sous-titre" style="margin-bottom:0;">Attribuée à <strong>{{ $licence->entreprise->nom }}</strong></p>
+    </div>
+
+    <div class="groupe-actions">
+        @if($licence->statut === 'active')
+            <form method="POST" action="{{ route('admin.licences.bloquer', $licence) }}">
+                @csrf
+                <button type="submit" class="bouton bouton-danger">Bloquer la licence</button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('admin.licences.activer', $licence) }}">
+                @csrf
+                <button type="submit" class="bouton">Activer la licence</button>
+            </form>
+        @endif
+    </div>
+</div>
 
 <div class="carte">
-    <label style="margin-top:0;">Clé de licence</label>
-
-    <div style="display:flex; align-items:center; gap:10px;">
-        <div class="cle-licence" id="cle-{{ $licence->id }}">
-            {{ $licence->cle }}
-        </div>
-
-        <button 
-            type="button" 
-            onclick="copierCle('{{ $licence->id }}')"
-            class="bouton-copie">
-            📋 Copier
+    <label style="margin-top: 0;">Clé de licence</label>
+    <div class="champ-cle">
+        <code id="cle-licence">{{ $licence->cle }}</code>
+        <button type="button" onclick="copierCle('cle-licence', this)" class="bouton bouton-secondaire" style="padding: 6px 12px; font-size: 12.5px;">
+            📋 Copier la clé
         </button>
     </div>
-    <div class="grille-2" style="margin-top:20px;">
-        <div>
-            <label style="margin-top:0;">Statut</label>
-            <span class="badge badge-{{ $licence->statut === 'active' ? 'active' : ($licence->statut === 'expiree' ? 'expiree' : 'bloquee') }}">
-                {{ ucfirst($licence->statut) }}
-            </span>
-        </div>
-        <div>
-            <label style="margin-top:0;">Type</label>
-            {{ ucfirst($licence->type) }}
-        </div>
-    </div>
-
-    <div class="grille-2">
-        <div>
-            <label>Début</label>
-            {{ \Illuminate\Support\Carbon::parse($licence->date_debut)->format('d/m/Y') }}
-        </div>
-        <div>
-            <label>Expiration</label>
-            {{ \Illuminate\Support\Carbon::parse($licence->date_expiration)->format('d/m/Y') }}
-        </div>
-    </div>
-
-    <div class="grille-2">
-        <div>
-            <label>Postes utilisés</label>
-            {{ $licence->appareils->count() }} / {{ $licence->nombre_utilisateurs }}
-        </div>
-        <div>
-            <label>Véhicules max</label>
-            {{ $licence->nombre_vehicules }}
-        </div>
-    </div>
-
-    @if ($licence->statut !== 'expiree')
-        <form method="POST" action="{{ route('admin.licences.toggle', $licence) }}" style="margin-top:20px;">
-            @csrf
-            <button type="submit" class="bouton {{ $licence->statut === 'bloquee' ? '' : 'bouton-danger' }}">
-                {{ $licence->statut === 'bloquee' ? 'Débloquer la licence' : 'Bloquer la licence' }}
-            </button>
-        </form>
-    @endif
-
-    <hr style="margin:25px 0; border:none; border-top:1px solid #E5E7EB;">
-    <form method="POST"
-        action="{{ route('admin.licences.destroy', $licence) }}"
-        onsubmit="return confirm('⚠️ Cette action est irréversible.\n\nVoulez-vous vraiment supprimer cette licence ?');">
-
-        @csrf
-        @method('DELETE')
-
-        <button type="submit" class="bouton bouton-danger">
-            🗑 Supprimer la licence
-        </button>
-    </form>
 </div>
 
-<div class="carte" style="padding:0;">
-    <div style="padding:20px 20px 0;">
-        <h1 style="font-size:15px;">Appareils activés</h1>
+<div class="grille-details">
+    <div class="carte">
+        <h3 style="margin-top: 0; font-size: 16px;">Informations générales</h3>
+        <ul class="liste-info">
+            <li>
+                <span style="color: var(--texte-secondaire);">Statut</span>
+                <span class="badge badge-{{ $licence->statut === 'active' ? 'active' : ($licence->statut === 'expiree' ? 'expiree' : 'bloquee') }}">
+                    {{ ucfirst($licence->statut) }}
+                </span>
+            </li>
+            <li>
+                <span style="color: var(--texte-secondaire);">Type d'abonnement</span>
+                <strong>{{ ucfirst($licence->type) }}</strong>
+            </li>
+            <li>
+                <span style="color: var(--texte-secondaire);">Date de début</span>
+                <span>{{ \Illuminate\Support\Carbon::parse($licence->date_debut)->format('d/m/Y') }}</span>
+            </li>
+            <li>
+                <span style="color: var(--texte-secondaire);">Date d'expiration</span>
+                <span>{{ \Illuminate\Support\Carbon::parse($licence->date_expiration)->format('d/m/Y') }}</span>
+            </li>
+        </ul>
     </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Machine</th>
-                <th>Identifiant</th>
-                <th>Dernière vérification</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($licence->appareils as $appareil)
+
+    <div class="carte">
+        <h3 style="margin-top: 0; font-size: 16px;">Limites & Postes</h3>
+        <ul class="liste-info">
+            <li>
+                <span style="color: var(--texte-secondaire);">Postes actifs</span>
+                <strong>{{ $licence->appareils->count() }} / {{ $licence->nombre_utilisateurs }}</strong>
+            </li>
+            <li>
+                <span style="color: var(--texte-secondaire);">Véhicules autorisés</span>
+                <strong>{{ $licence->nombre_vehicules }}</strong>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="carte" style="padding: 0;">
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--bordure);">
+        <h3 style="margin: 0; font-size: 16px;">Appareils / Postes enregistrés</h3>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $appareil->nom_machine ?? '—' }}</td>
-                    <td><code>{{ $appareil->identifiant_machine }}</code></td>
-                    <td>{{ $appareil->derniere_verification?->format('d/m/Y H:i') ?? '—' }}</td>
-                    <td>
-                        <form method="POST" action="{{ route('admin.appareils.revoquer', $appareil) }}" onsubmit="return confirm('Révoquer cet appareil ? Le poste sera libéré.');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bouton bouton-danger" style="padding:6px 12px; font-size:12px;">Révoquer</button>
-                        </form>
-                    </td>
+                    <th>Nom de l'appareil</th>
+                    <th>Identifiant unique</th>
+                    <th>Dernière connexion</th>
                 </tr>
-            @empty
-                <tr><td colspan="4" style="text-align:center; color:#9CA3AF; padding:20px;">Aucun appareil activé pour le moment.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @forelse ($licence->appareils as $appareil)
+                    <tr>
+                        <td style="font-weight: 600;">{{ $appareil->nom ?? 'Appareil inconnu' }}</td>
+                        <td><code>{{ $appareil->identifiant_unique }}</code></td>
+                        <td>{{ $appareil->updated_at ? $appareil->updated_at->format('d/m/Y H:i') : 'N/A' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--texte-secondaire); padding: 24px;">
+                            Aucun poste n'a encore été enregistré avec cette licence.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<a href="{{ route('admin.dashboard') }}" class="bouton bouton-secondaire" style="margin-top:8px;">← Retour à la liste</a>
 @endsection
 
 @push('scripts')
 <script>
-function copierCle(id) {
-    const cle = document.getElementById('cle-' + id).innerText;
-
-    navigator.clipboard.writeText(cle)
-        .then(() => {
-            alert('Clé copiée !');
-        })
-        .catch(() => {
-            alert('Impossible de copier la clé.');
-        });
+function copierCle(idElement, btn) {
+    const cle = document.getElementById(idElement).innerText;
+    navigator.clipboard.writeText(cle).then(() => {
+        const texteOriginal = btn.innerText;
+        btn.innerText = '✅ Copié !';
+        setTimeout(() => { btn.innerText = texteOriginal; }, 2000);
+    });
 }
 </script>
+@endpush
