@@ -3,375 +3,255 @@
 @section('titre', 'Connexion')
 
 @section('contenu')
-
-<div class="login-container">
-
-    <div class="login-card">
-
-        <div class="login-header">
-            <div class="logo">
-                <span>🔐</span>
-            </div>
-
-            <h1>Administration</h1>
-            <p>
-                Gestion des entreprises et des licences
-            </p>
-        </div>
-
+<div style="max-width:380px; margin: 60px auto 0;">
+    <div class="carte">
+        <h1>Connexion admin</h1>
+        <p class="sous-titre">Gestion des entreprises et des licences.</p>
 
         @if ($errors->any())
-            <div class="alert-error">
-                {{ $errors->first() }}
-            </div>
+            <div class="alerte-erreur">{{ $errors->first() }}</div>
         @endif
-
 
         <form method="POST" action="{{ route('admin.login.submit') }}">
             @csrf
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus>
 
+            <label for="password">Mot de passe</label>
+            <input type="password" name="password" id="password" required>
 
-            <div class="input-group">
-                <label for="email">
-                    Adresse email
-                </label>
-
-                <div class="input-box">
-                    <span>✉️</span>
-                    <input 
-                        type="email" 
-                        name="email" 
-                        id="email"
-                        value="{{ old('email') }}"
-                        placeholder="admin@example.com"
-                        required
-                        autofocus
-                    >
-                </div>
-            </div>
-
-
-
-            <div class="input-group">
-                <label for="password">
-                    Mot de passe
-                </label>
-
-                <div class="input-box">
-                    <span>🔒</span>
-
-                    <input 
-                        type="password"
-                        name="password"
-                        id="password"
-                        placeholder="Votre mot de passe"
-                        required
-                    >
-                </div>
-            </div>
-
-
-
-            <button type="submit" class="login-button">
-                Se connecter
-                <span>→</span>
-            </button>
-
-
+            <button type="submit" class="bouton" style="width:100%; margin-top:20px;">Se connecter</button>
         </form>
-
-
-        <div class="footer-text">
-            © {{ date('Y') }} - Gestion Licence
-        </div>
-
     </div>
+</div>
+@endsection
+
+
+
+
+```blade
+@extends('admin.layout')
+
+@section('titre', 'Connexion')
+
+@section('contenu')
+
+<style>
+.login-page{
+    min-height:calc(100vh - 60px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    background:linear-gradient(135deg,#0F172A,#1E3A8A);
+}
+
+.login-container{
+    width:100%;
+    max-width:1050px;
+    display:grid;
+    grid-template-columns:1fr 450px;
+    border-radius:22px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 25px 70px rgba(0,0,0,.25);
+}
+
+.login-left{
+    background:linear-gradient(135deg,#2563EB,#1D4ED8);
+    color:white;
+    padding:70px 55px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.login-left h1{
+    font-size:42px;
+    margin-bottom:20px;
+    color:#fff;
+}
+
+.login-left p{
+    font-size:16px;
+    line-height:1.8;
+    opacity:.95;
+}
+
+.login-right{
+    padding:55px;
+}
+
+.login-logo{
+    width:70px;
+    height:70px;
+    border-radius:18px;
+    background:#2563EB;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.login-title{
+    font-size:28px;
+    font-weight:700;
+    margin-bottom:6px;
+}
+
+.login-subtitle{
+    color:#6B7280;
+    margin-bottom:30px;
+}
+
+.input-group{
+    position:relative;
+    margin-bottom:18px;
+}
+
+.input-group input{
+    width:100%;
+    height:52px;
+    padding:0 18px;
+    border-radius:12px;
+    border:1px solid #D1D5DB;
+    background:#F9FAFB;
+    transition:.25s;
+}
+
+.input-group input:focus{
+    border-color:#2563EB;
+    outline:none;
+    background:white;
+    box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+
+.login-btn{
+    width:100%;
+    height:52px;
+    border:none;
+    border-radius:12px;
+    background:#2563EB;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.login-btn:hover{
+    background:#1D4ED8;
+}
+
+.login-footer{
+    margin-top:25px;
+    text-align:center;
+    color:#9CA3AF;
+    font-size:13px;
+}
+
+@media(max-width:900px){
+
+.login-container{
+grid-template-columns:1fr;
+}
+
+.login-left{
+display:none;
+}
+
+.login-right{
+padding:35px;
+}
+
+}
+</style>
+
+<div class="login-page">
+
+<div class="login-container">
+
+<div class="login-left">
+
+<h1>Administration</h1>
+
+<p>
+
+Bienvenue dans le système de gestion des licences.
+
+Connectez-vous afin d'administrer les entreprises, les licences et les appareils autorisés.
+
+</p>
 
 </div>
 
+<div class="login-right">
 
-<style>
+<div class="login-logo">
+L
+</div>
 
-*{
-    box-sizing:border-box;
-}
+<div class="login-title">
+Connexion
+</div>
 
+<div class="login-subtitle">
+Accédez à votre espace administrateur.
+</div>
 
-.login-container{
+@if ($errors->any())
+<div class="alerte-erreur">
+{{ $errors->first() }}
+</div>
+@endif
 
-    min-height:80vh;
+<form method="POST" action="{{ route('admin.login.submit') }}">
 
-    display:flex;
+@csrf
 
-    justify-content:center;
+<label>Email</label>
 
-    align-items:center;
+<div class="input-group">
+<input
+type="email"
+name="email"
+value="{{ old('email') }}"
+placeholder="exemple@entreprise.com"
+required
+autofocus>
+</div>
 
-    background:
-    linear-gradient(
-        135deg,
-        #0f172a,
-        #1e293b
-    );
+<label>Mot de passe</label>
 
-    padding:30px;
+<div class="input-group">
+<input
+type="password"
+name="password"
+placeholder="Votre mot de passe"
+required>
+</div>
 
-}
+<button class="login-btn">
 
+Se connecter
 
+</button>
 
-.login-card{
+</form>
 
-    width:400px;
+<div class="login-footer">
 
-    background:white;
+© {{ date('Y') }} Gestion des licences
 
-    border-radius:25px;
+</div>
 
-    padding:40px;
+</div>
 
-    box-shadow:
-    0 20px 50px rgba(0,0,0,.25);
+</div>
 
-    animation:slide .5s ease;
-
-}
-
-
-
-@keyframes slide{
-
-from{
-    opacity:0;
-    transform:translateY(30px);
-}
-
-to{
-    opacity:1;
-    transform:translateY(0);
-}
-
-}
-
-
-
-.login-header{
-
-    text-align:center;
-
-    margin-bottom:30px;
-
-}
-
-
-
-.logo{
-
-    width:75px;
-
-    height:75px;
-
-    margin:auto;
-
-    border-radius:50%;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:
-    linear-gradient(
-        135deg,
-        #d4af37,
-        #f7d774
-    );
-
-    font-size:35px;
-
-}
-
-
-
-.login-header h1{
-
-    margin-top:20px;
-
-    font-size:28px;
-
-    color:#0f172a;
-
-}
-
-
-
-.login-header p{
-
-    color:#64748b;
-
-    font-size:14px;
-
-}
-
-
-
-.input-group{
-
-    margin-bottom:20px;
-
-}
-
-
-
-.input-group label{
-
-    display:block;
-
-    margin-bottom:8px;
-
-    color:#334155;
-
-    font-weight:600;
-
-}
-
-
-
-.input-box{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:10px;
-
-    border:1px solid #cbd5e1;
-
-    padding:0 15px;
-
-    border-radius:12px;
-
-    transition:.3s;
-
-}
-
-
-
-.input-box:focus-within{
-
-    border-color:#d4af37;
-
-    box-shadow:
-    0 0 0 3px rgba(212,175,55,.15);
-
-}
-
-
-
-.input-box span{
-
-    font-size:18px;
-
-}
-
-
-
-.input-box input{
-
-    width:100%;
-
-    padding:14px 5px;
-
-    border:none;
-
-    outline:none;
-
-    font-size:15px;
-
-}
-
-
-
-.login-button{
-
-    width:100%;
-
-    padding:15px;
-
-    border:none;
-
-    border-radius:12px;
-
-    cursor:pointer;
-
-    color:white;
-
-    font-size:16px;
-
-    font-weight:bold;
-
-    display:flex;
-
-    justify-content:center;
-
-    gap:10px;
-
-    background:
-    linear-gradient(
-        135deg,
-        #d4af37,
-        #b8860b
-    );
-
-    transition:.3s;
-
-}
-
-
-
-.login-button:hover{
-
-    transform:translateY(-3px);
-
-    box-shadow:
-    0 10px 25px rgba(212,175,55,.4);
-
-}
-
-
-
-.alert-error{
-
-    background:#fee2e2;
-
-    color:#991b1b;
-
-    padding:12px;
-
-    border-radius:10px;
-
-    margin-bottom:20px;
-
-    text-align:center;
-
-}
-
-
-
-.footer-text{
-
-    margin-top:25px;
-
-    text-align:center;
-
-    color:#94a3b8;
-
-    font-size:13px;
-
-}
-
-
-</style>
+</div>
 
 @endsection
