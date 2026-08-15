@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Licence;
 use App\Models\Appareil;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class LicenseController extends Controller
 {
@@ -57,23 +58,37 @@ class LicenseController extends Controller
             ], 403);
         }
 
-        // ---------- Activation / vérification de l'appareil ----------
+        // ---------- Activation / vérification de l'appareil (transactionnel) ----------
 
-        $appareil = Appareil::where('licence_id', $licence->id)
-            ->where('identifiant_machine', $donnees['identifiant_machine'])
-            ->first();
+        try {
+            DB::transaction(function () use ($licence, $donnees, &$appareil) {
+                // Lock the licence row to prevent concurrent activation races.
+                $licence = Licence::where('id', $licence->id)->lockForUpdate()->first();
 
-        if ($appareil) {
-            // Appareil déjà connu : on rafraîchit juste son horodatage,
-            // et le nom de machine au cas où il aurait changé.
-            $appareil->update([
-                'nom_machine' => $donnees['nom_machine'] ?? $appareil->nom_machine,
-                'derniere_verification' => Carbon::now(),
-            ]);
-        } else {
-            // Nouvel appareil pour cette licence : on vérifie d'abord qu'il
-            // reste des postes disponibles avant de l'enregistrer.
-            if ($licence->limiteAppareilsAtteinte()) {
+                $appareil = Appareil::where('licence_id', $licence->id)
+                    ->where('identifiant_machine', $donnees['identifiant_machine'])
+                    ->first();
+
+                if ($appareil) {
+                    $appareil->update([
+                        'nom_machine' => $donnees['nom_machine'] ?? $appareil->nom_machine,
+                        'derniere_verification' => Carbon::now(),
+                    ]);
+                } else {
+                    if ($licence->limiteAppareilsAtteinte()) {
+                        throw new \RuntimeException('limit_reached');
+                    }
+
+                    $appareil = Appareil::create([
+                        'licence_id' => $licence->id,
+                        'identifiant_machine' => $donnees['identifiant_machine'],
+                        'nom_machine' => $donnees['nom_machine'] ?? null,
+                        'derniere_verification' => Carbon::now(),
+                    ]);
+                }
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'limit_reached') {
                 return response()->json([
                     'valid' => false,
                     'message' => 'Limite de postes atteinte pour cette licence',
@@ -82,12 +97,7 @@ class LicenseController extends Controller
                 ], 403);
             }
 
-            $appareil = Appareil::create([
-                'licence_id' => $licence->id,
-                'identifiant_machine' => $donnees['identifiant_machine'],
-                'nom_machine' => $donnees['nom_machine'] ?? null,
-                'derniere_verification' => Carbon::now(),
-            ]);
+            throw $e;
         }
 
         return response()->json([

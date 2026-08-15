@@ -11,4 +11,4 @@ Route::get('/test', function () {
     ]);
 });
 
-Route::post('/license/check', [LicenseController::class, 'check']);
+Route::middleware('throttle:60,1')->post('/license/check', [LicenseController::class, 'check']);
