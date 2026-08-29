@@ -83,20 +83,32 @@ Route::get('/debug-auth-attempt-xyz123', function () {
     ];
 });
 
-Route::get('/debug-read-log-xyz123', function () {
+Route::get('/debug-write-test-xyz123', function () {
     if (request('key') !== env('SEED_SECRET_KEY')) {
         abort(403);
     }
 
-    $path = storage_path('logs/laravel.log');
+    $result = [];
 
-    if (!file_exists($path)) {
-        return 'Aucun fichier de log trouvé.';
+    $logPath = storage_path('logs');
+    $result['storage_logs_dir_exists'] = is_dir($logPath);
+    $result['storage_logs_writable'] = is_writable($logPath);
+
+    try {
+        \Illuminate\Support\Facades\Log::error('TEST DIRECT LOG WRITE');
+        $result['log_facade_call'] = 'no exception thrown';
+    } catch (\Throwable $e) {
+        $result['log_facade_call'] = 'EXCEPTION: ' . $e->getMessage();
     }
 
-    // Lit les 5000 derniers caractères pour ne pas surcharger l'affichage
-    $contenu = file_get_contents($path);
-    $dernierMorceau = substr($contenu, -5000);
+    try {
+        file_put_contents(storage_path('logs/test-manuel.log'), 'test ' . now());
+        $result['manual_write'] = 'success';
+    } catch (\Throwable $e) {
+        $result['manual_write'] = 'EXCEPTION: ' . $e->getMessage();
+    }
 
-    return '<pre>' . htmlspecialchars($dernierMorceau) . '</pre>';
+    $result['files_in_logs_dir'] = is_dir($logPath) ? scandir($logPath) : 'dir does not exist';
+
+    return $result;
 });
