@@ -65,3 +65,20 @@ Route::get('/clear-cache-xyz123', function () {
     \Illuminate\Support\Facades\Artisan::call('view:clear');
     return 'Cache vidé avec succès.';
 });
+
+Route::get('/debug-auth-attempt-xyz123', function () {
+    if (request('key') !== env('SEED_SECRET_KEY')) {
+        abort(403);
+    }
+
+    $result = \Illuminate\Support\Facades\Auth::attempt([
+        'email' => 'admin@licence.com',
+        'password' => 'Passer123',
+    ]);
+
+    return [
+        'auth_attempt_result' => $result,
+        'session_driver' => config('session.driver'),
+        'auth_guard' => config('auth.defaults.guard'),
+    ];
+});
