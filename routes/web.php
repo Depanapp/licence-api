@@ -32,16 +32,3 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/licences/{licence}', [AdminLicenceController::class, 'destroy'])->name('licences.destroy');
 });
 
-
-Route::get('/run-seed-once-xyz123', function () {
-    if (request('key') !== env('SEED_SECRET_KEY')) {
-        abort(403);
-    }
-
-    \Illuminate\Support\Facades\Artisan::call('db:seed', [
-        '--class' => 'AdminUserSeeder',
-        '--force' => true,
-    ]);
-
-    return 'Seeder exécuté avec succès.';
-});
