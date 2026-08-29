@@ -54,3 +54,14 @@ Route::get('/debug-admin-check-xyz123', function () {
         'password_matches' => $passwordMatches,
     ];
 });
+
+Route::get('/clear-cache-xyz123', function () {
+    if (request('key') !== env('SEED_SECRET_KEY')) {
+        abort(403);
+    }
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return 'Cache vidé avec succès.';
+});
