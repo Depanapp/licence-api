@@ -33,15 +33,24 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 });
 
 
-Route::get('/run-seed-once-xyz123', function () {
+Route::get('/debug-admin-check-xyz123', function () {
     if (request('key') !== env('SEED_SECRET_KEY')) {
         abort(403);
     }
 
-    \Illuminate\Support\Facades\Artisan::call('db:seed', [
-        '--class' => 'AdminUserSeeder',
-        '--force' => true,
-    ]);
+    $user = \App\Models\User::where('email', 'admin@licence.com')->first();
 
-    return 'Seeder exécuté avec succès.';
+    if (!$user) {
+        return 'Aucun utilisateur trouvé avec cet email.';
+    }
+
+    $passwordMatches = \Illuminate\Support\Facades\Hash::check('Passer123', $user->password);
+
+    return [
+        'user_found' => true,
+        'email' => $user->email,
+        'name' => $user->name,
+        'password_hash' => $user->password,
+        'password_matches' => $passwordMatches,
+    ];
 });
