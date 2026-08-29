@@ -21,7 +21,7 @@ class AdminAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        Log::info('LOGIN ATTEMPT DEBUG', [
+       Log::error('LOGIN ATTEMPT DEBUG', [
             'email_raw' => $donnees['email'],
             'email_length' => strlen($donnees['email']),
             'password_length' => strlen($donnees['password']),
@@ -32,7 +32,7 @@ class AdminAuthController extends Controller
 
         $attemptResult = Auth::attempt($donnees, $request->boolean('remember'));
 
-        Log::info('AUTH ATTEMPT RESULT', ['result' => $attemptResult]);
+        Log::error('AUTH ATTEMPT RESULT', ['result' => $attemptResult]);
 
         if (! $attemptResult) {
             return back()
