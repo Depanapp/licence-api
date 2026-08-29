@@ -32,3 +32,24 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/appareils/{appareil}', [AdminLicenceController::class, 'revoquerAppareil'])->name('appareils.revoquer');
     Route::delete('/licences/{licence}', [AdminLicenceController::class, 'destroy'])->name('licences.destroy');
 });
+
+Route::get('/debug-db-tables-xyz123', function () {
+    if (request('key') !== env('SEED_SECRET_KEY')) {
+        abort(403);
+    }
+
+    $resultat = [];
+
+    // Liste toutes les tables
+    $tables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
+    $resultat['tables'] = $tables;
+
+    // Contenu de la table users
+    try {
+        $resultat['users'] = \Illuminate\Support\Facades\DB::table('users')->get();
+    } catch (\Throwable $e) {
+        $resultat['users_error'] = $e->getMessage();
+    }
+
+    return response()->json($resultat, 200, [], JSON_PRETTY_PRINT);
+});
