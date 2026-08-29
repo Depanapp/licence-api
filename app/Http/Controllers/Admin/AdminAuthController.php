@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AdminAuthController extends Controller
 {
@@ -20,7 +21,20 @@ class AdminAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! Auth::attempt($donnees, $request->boolean('remember'))) {
+        Log::info('LOGIN ATTEMPT DEBUG', [
+            'email_raw' => $donnees['email'],
+            'email_length' => strlen($donnees['email']),
+            'password_length' => strlen($donnees['password']),
+            'session_id' => $request->session()->getId(),
+            'csrf_token_request' => $request->input('_token'),
+            'csrf_token_session' => $request->session()->token(),
+        ]);
+
+        $attemptResult = Auth::attempt($donnees, $request->boolean('remember'));
+
+        Log::info('AUTH ATTEMPT RESULT', ['result' => $attemptResult]);
+
+        if (! $attemptResult) {
             return back()
                 ->withErrors(['email' => 'Identifiants incorrects.'])
                 ->onlyInput('email');
