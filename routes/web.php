@@ -112,3 +112,22 @@ Route::get('/debug-write-test-xyz123', function () {
 
     return $result;
 });
+
+
+Route::get('/debug-read-log-xyz123', function () {
+    if (request('key') !== env('SEED_SECRET_KEY')) {
+        abort(403);
+    }
+
+    $path = storage_path('logs/laravel.log');
+
+    if (!file_exists($path)) {
+        return 'Aucun fichier de log trouvé.';
+    }
+
+    // Lit les 5000 derniers caractères pour ne pas surcharger l'affichage
+    $contenu = file_get_contents($path);
+    $dernierMorceau = substr($contenu, -5000);
+
+    return '<pre>' . htmlspecialchars($dernierMorceau) . '</pre>';
+});
