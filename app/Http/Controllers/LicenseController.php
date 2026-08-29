@@ -7,6 +7,9 @@ use App\Models\Licence;
 use App\Models\Appareil;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
+use Throwable;
 
 class LicenseController extends Controller
 {
@@ -26,7 +29,41 @@ class LicenseController extends Controller
             'nom_machine' => 'nullable|string',
         ]);
 
-        $licence = Licence::where('cle', $donnees['cle'])->first();
+        // ---------- Tout le traitement est protégé par un filet de sécurité ----------
+        // En cas d'erreur inattendue (connexion DB coupée, timeout, etc.),
+        // on ne renvoie JAMAIS la stack trace brute au client : on journalise
+        // l'erreur côté serveur et on renvoie un message générique propre.
+        try {
+            return $this->traiterVerification($donnees);
+        } catch (Throwable $e) {
+            Log::error('[LicenceController] Erreur lors de la vérification de licence', [
+                'message' => $e->getMessage(),
+                'cle' => $donnees['cle'] ?? null,
+                'identifiant_machine' => $donnees['identifiant_machine'] ?? null,
+            ]);
+
+            return response()->json([
+                'valid' => false,
+                'message' => 'Service de licence temporairement indisponible. Veuillez réessayer.',
+            ], 503);
+        }
+    }
+
+    /**
+     * Logique métier de vérification, séparée pour pouvoir être encapsulée
+     * dans le try/catch global de check().
+     */
+    private function traiterVerification(array $donnees)
+    {
+        // ---------- Lecture de la licence, avec reconnexion automatique ----------
+        try {
+            $licence = Licence::where('cle', $donnees['cle'])->first();
+        } catch (QueryException $e) {
+            // La connexion DB a pu être coupée (ex: "MySQL server has gone away").
+            // On force une reconnexion et on retente une seule fois.
+            DB::reconnect();
+            $licence = Licence::where('cle', $donnees['cle'])->first();
+        }
 
         if (!$licence) {
             return response()->json([
