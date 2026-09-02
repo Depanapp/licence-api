@@ -94,7 +94,7 @@
                     <button
                         type="submit"
                         class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg shadow-sm transition active:scale-[0.99]">
-                        <span>Créer le compte</span>
+                        <span>Créer lecompte</span>
                         <span class="text-gray-400">→</span>
                     </button>
                 </div>
